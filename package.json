@@ -1,0 +1,58 @@
+{
+  "name": "cocobase",
+  "version": "0.0.1",
+  "description": "The Official cocobase sdk",
+  "main": "dist/index.js",
+  "type": "module",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc",
+    "build:esm": "tsc -m esnext --outDir dist/esm",
+    "clean": "if exist dist rd /s /q dist",
+    "test": "tsx test/app.ts",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/cocobase.git"
+  },
+  "keywords": [
+    "baas",
+    "backend",
+    "api",
+    "client",
+    "cocobase",
+    "database",
+    "cloud"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/cocobase/issues"
+  },
+  "homepage": "https://github.com/yourusername/cocobase#readme",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/node": "^22.15.29",
+    "nodemon": "^3.1.10",
+    "rollup": "^4.41.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
