@@ -1,6 +1,9 @@
-export class Cocobase {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Cocobase = void 0;
+class Cocobase {
     constructor(config) {
-        this.baseURL = "https://cocobase-api.onrender.com";
+        this.baseURL = "https://futurebase.fly.dev/";
         this.apiKey = config.apiKey;
     }
     async request(method, path, body) {
@@ -78,4 +81,5 @@ export class Cocobase {
         return this.request('GET', `/collections/${collection}/documents`);
     }
 }
+exports.Cocobase = Cocobase;
 //# sourceMappingURL=core.js.map

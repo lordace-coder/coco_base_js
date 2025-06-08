@@ -1,6 +1,6 @@
 export class Cocobase {
     constructor(config) {
-        this.baseURL = "https://cocobase-api.onrender.com";
+        this.baseURL = "https://futurebase.fly.dev/";
         this.apiKey = config.apiKey;
     }
     async request(method, path, body) {

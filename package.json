@@ -1,18 +1,26 @@
 {
   "name": "cocobase",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "The Official cocobase sdk",
-  "main": "dist/index.js",
   "type": "module",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npm run clean && npm run build:cjs && npm run build:esm",
-    "build:cjs": "tsc",
-    "build:esm": "tsc -m esnext --outDir dist/esm",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
     "clean": "if exist dist rd /s /q dist",
     "test": "tsx test/app.ts",
     "prepublishOnly": "npm run build",
