@@ -4,7 +4,7 @@ exports.Cocobase = void 0;
 const utils_1 = require("../utils/utils");
 class Cocobase {
     constructor(config) {
-        this.baseURL = "https://futurebase.fly.dev/";
+        this.baseURL = "https://futurebase.fly.dev";
         this.apiKey = config.apiKey;
     }
     async request(method, path, body, useDataKey = true) {
@@ -106,14 +106,14 @@ class Cocobase {
         (0, utils_1.setToLocalStorage)("cocobase-token", token);
     }
     async login(email, password) {
-        const response = this.request(`POST`, `auth-collections/login`, { email, password }, false // Do not use data key for auth endpoints
+        const response = this.request(`POST`, `/auth-collections/login`, { email, password }, false // Do not use data key for auth endpoints
         );
         this.token = (await response).access_token;
         this.setToken(this.token);
         this.user = await this.getCurrentUser();
     }
     async register(email, password, data) {
-        const response = this.request(`POST`, `auth-collections/signup`, { email, password, data }, false // Do not use data key for auth endpoints
+        const response = this.request(`POST`, `/auth-collections/signup`, { email, password, data }, false // Do not use data key for auth endpoints
         );
         this.token = (await response).access_token;
         this.setToken(this.token);
@@ -129,7 +129,7 @@ class Cocobase {
         if (!this.token) {
             throw new Error("User is not authenticated");
         }
-        const user = await this.request("GET", `auth-collections/user`);
+        const user = await this.request("GET", `/auth-collections/user`);
         if (!user) {
             throw new Error("Failed to fetch current user");
         }
@@ -149,7 +149,7 @@ class Cocobase {
             body.email = email;
         if (password != null)
             body.password = password;
-        const user = await this.request("PATCH", "auth-collections/user", body, false);
+        const user = await this.request("PATCH", "/auth-collections/user", body, false);
         this.user = user;
         (0, utils_1.setToLocalStorage)("cocobase-user", JSON.stringify(user));
         return user;

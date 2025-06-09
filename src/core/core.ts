@@ -17,7 +17,7 @@ export class Cocobase {
   user?: AppUser;
 
   constructor(config: CocobaseConfig) {
-    this.baseURL = "https://futurebase.fly.dev/";
+    this.baseURL = "https://futurebase.fly.dev";
     this.apiKey = config.apiKey;
   }
 
@@ -169,7 +169,7 @@ export class Cocobase {
   async login(email: string, password: string) {
     const response = this.request<TokenResponse>(
       `POST`,
-      `auth-collections/login`,
+      `/auth-collections/login`,
       { email, password },
       false // Do not use data key for auth endpoints
     );
@@ -181,7 +181,7 @@ export class Cocobase {
   async register(email: string, password: string, data?: Record<string, any>) {
     const response = this.request<TokenResponse>(
       `POST`,
-      `auth-collections/signup`,
+      `/auth-collections/signup`,
       { email, password, data },
       false // Do not use data key for auth endpoints
     );
@@ -200,7 +200,7 @@ export class Cocobase {
     if (!this.token) {
       throw new Error("User is not authenticated");
     }
-    const user = await this.request("GET", `auth-collections/user`);
+    const user = await this.request("GET", `/auth-collections/user`);
     if (!user) {
       throw new Error("Failed to fetch current user");
     }
@@ -226,7 +226,7 @@ export class Cocobase {
 
     const user = await this.request(
       "PATCH",
-      "auth-collections/user",
+      "/auth-collections/user",
       body,
       false
     );
