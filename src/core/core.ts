@@ -1,9 +1,20 @@
-import { CocobaseConfig, Document } from "../types/types";
-
+import {
+  CocobaseConfig,
+  Document,
+  TokenResponse,
+  AppUser,
+} from "../types/types";
+import {
+  getFromLocalStorage,
+  mergeUserData,
+  setToLocalStorage,
+} from "../utils/utils";
 
 export class Cocobase {
   private baseURL: string;
   private apiKey?: string;
+  private token?: string;
+  user?: AppUser;
 
   constructor(config: CocobaseConfig) {
     this.baseURL = "https://futurebase.fly.dev/";
@@ -11,19 +22,22 @@ export class Cocobase {
   }
 
   private async request<T>(
-    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+    method: "GET" | "POST" | "PATCH" | "DELETE",
     path: string,
-    body?: unknown
+    body?: unknown,
+    useDataKey: boolean = true
   ): Promise<T> {
     const url = `${this.baseURL}${path}`;
+    const data = useDataKey ? { data: body } : body;
     try {
       const res = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          ...(this.apiKey ? { 'x-api-key': `${this.apiKey}` } : {}),
+          "Content-Type": "application/json",
+          ...(this.apiKey ? { "x-api-key": `${this.apiKey}` } : {}),
+          ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
         },
-        ...(body ? { body: JSON.stringify({data:body}) } : {}),
+        ...(body ? { body: JSON.stringify(data) } : {}),
       });
 
       if (!res.ok) {
@@ -40,10 +54,12 @@ export class Cocobase {
           url,
           method,
           error: errorDetail,
-          suggestions: this.getErrorSuggestion(res.status, method)
+          suggestions: this.getErrorSuggestion(res.status, method),
         };
 
-        throw new Error(`Request failed:\n${JSON.stringify(errorMessage, null, 2)}`);
+        throw new Error(
+          `Request failed:\n${JSON.stringify(errorMessage, null, 2)}`
+        );
       }
 
       return res.json() as Promise<T>;
@@ -51,7 +67,9 @@ export class Cocobase {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error(`Unexpected error during ${method} request to ${url}: ${error}`);
+      throw new Error(
+        `Unexpected error during ${method} request to ${url}: ${error}`
+      );
     }
   }
 
@@ -77,7 +95,10 @@ export class Cocobase {
     collection: string,
     docId: string
   ): Promise<Document<T>> {
-    return this.request<Document<T>>('GET', `/collections/${collection}/documents/${docId}`);
+    return this.request<Document<T>>(
+      "GET",
+      `/collections/${collection}/documents/${docId}`
+    );
   }
 
   // Create a new document
@@ -85,7 +106,11 @@ export class Cocobase {
     collection: string,
     data: T
   ): Promise<Document<T>> {
-    return this.request<Document<T>>('POST', `/collections/documents?collection=${collection}`, data);
+    return this.request<Document<T>>(
+      "POST",
+      `/collections/documents?collection=${collection}`,
+      data
+    );
   }
 
   // Update a document
@@ -94,7 +119,11 @@ export class Cocobase {
     docId: string,
     data: Partial<T>
   ): Promise<Document<T>> {
-    return this.request<Document<T>>('PATCH', `/collections/${collection}/documents/${docId}`, data);
+    return this.request<Document<T>>(
+      "PATCH",
+      `/collections/${collection}/documents/${docId}`,
+      data
+    );
   }
 
   // Delete a document
@@ -102,13 +131,108 @@ export class Cocobase {
     collection: string,
     docId: string
   ): Promise<{ success: boolean }> {
-    return this.request('DELETE', `/collections/${collection}/documents/${docId}`);
+    return this.request(
+      "DELETE",
+      `/collections/${collection}/documents/${docId}`
+    );
   }
 
   // List documents
-  async listDocuments<T = any>(
-    collection: string
-  ): Promise<Document<T>[]> {
-    return this.request<Document<T>[]>('GET', `/collections/${collection}/documents`);
+  async listDocuments<T = any>(collection: string): Promise<Document<T>[]> {
+    return this.request<Document<T>[]>(
+      "GET",
+      `/collections/${collection}/documents`
+    );
+  }
+  // authentication features
+  async initAuth() {
+    const token = getFromLocalStorage("cocobase-token");
+    const user = getFromLocalStorage("cocobase-user");
+    if (token) {
+      this.token = token;
+      if (user) {
+        this.user = JSON.parse(user) as AppUser;
+      } else {
+        this.user = undefined;
+        this.getCurrentUser();
+      }
+    } else {
+      this.token = undefined;
+    }
+  }
+
+  setToken(token: string) {
+    this.token = token;
+    setToLocalStorage("cocobase-token", token);
+  }
+
+  async login(email: string, password: string) {
+    const response = this.request<TokenResponse>(
+      `POST`,
+      `auth-collections/login`,
+      { email, password },
+      false // Do not use data key for auth endpoints
+    );
+    this.token = (await response).access_token;
+    this.setToken(this.token);
+    this.user = await this.getCurrentUser();
+  }
+
+  async register(email: string, password: string, data?: Record<string, any>) {
+    const response = this.request<TokenResponse>(
+      `POST`,
+      `auth-collections/signup`,
+      { email, password, data },
+      false // Do not use data key for auth endpoints
+    );
+    this.token = (await response).access_token;
+    this.setToken(this.token);
+    this.getCurrentUser();
+  }
+
+  logout() {
+    this.token = undefined;
+  }
+  isAuthenticated(): boolean {
+    return !!this.token;
+  }
+  async getCurrentUser(): Promise<AppUser> {
+    if (!this.token) {
+      throw new Error("User is not authenticated");
+    }
+    const user = await this.request("GET", `auth-collections/user`);
+    if (!user) {
+      throw new Error("Failed to fetch current user");
+    }
+    this.user = user as AppUser;
+    setToLocalStorage("cocobase-user", JSON.stringify(user));
+    return user as AppUser;
+  }
+
+  async updateUser(
+    data?: Record<string, any> | null,
+    email?: string | null,
+    password?: string | null
+  ): Promise<AppUser> {
+    if (!this.token) {
+      throw new Error("User is not authenticated");
+    }
+
+    // Build request body by excluding null or undefined values
+    const body: Record<string, any> = {};
+    if (data != null) body.data = mergeUserData(this.user?.data || {}, data);
+    if (email != null) body.email = email;
+    if (password != null) body.password = password;
+
+    const user = await this.request(
+      "PATCH",
+      "auth-collections/user",
+      body,
+      false
+    );
+
+    this.user = user as AppUser;
+    setToLocalStorage("cocobase-user", JSON.stringify(user));
+    return user as AppUser;
   }
 }
