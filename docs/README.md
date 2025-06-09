@@ -8,6 +8,17 @@ The official JavaScript/TypeScript SDK for Cocobase, a powerful Backend-as-a-Ser
 npm install cocobase
 ```
 
+## Getting Your API Key
+
+Before using the Cocobase SDK, you'll need to obtain an API key:
+
+1. Visit [cocobase.buzz](https://cocobase.buzz) and log in to your account
+2. Create a new project from your dashboard
+3. Navigate to your project dashboard
+4. Copy your API key from the project settings
+
+Once you have your API key, you can initialize the Cocobase client.
+
 ## Quick Start
 
 ```typescript
