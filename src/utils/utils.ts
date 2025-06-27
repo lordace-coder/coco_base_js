@@ -1,3 +1,5 @@
+import { Query } from "../types/types";
+
 function getFromLocalStorage(key: string): string | null {
   try {
     if (
@@ -40,4 +42,28 @@ function mergeUserData(
   };
 }
 
-export { getFromLocalStorage, setToLocalStorage, mergeUserData };
+function buildFilterQuery({
+  filters = {},
+  limit = 100,
+  offset = 0,
+}: Query = {}): string {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(filters)) {
+    params.set(key, value);
+  }
+
+  params.set("limit", limit.toString());
+  params.set("offset", offset.toString());
+
+  return params.toString();
+}
+
+const BASEURL = "https://futurebase.fly.dev";
+export {
+  getFromLocalStorage,
+  setToLocalStorage,
+  mergeUserData,
+  BASEURL,
+  buildFilterQuery,
+};

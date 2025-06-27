@@ -15,12 +15,16 @@ export interface Document<T> {
   created_at: string;
   collection: Collection;
 }
-
-export interface TokenResponse{
+export interface Query {
+  filters?: Record<string, string>;
+  limit?: number;
+  offset?: number;
+}
+export interface TokenResponse {
   access_token: string;
 }
 
-export interface AppUser{
+export interface AppUser {
   id: string;
   email: string;
   created_at: string;

@@ -7,5 +7,5 @@ import {
 } from "./utils/utils";
 
 export { Cocobase, getFromLocalStorage, mergeUserData, setToLocalStorage };
-export type { TokenResponse, AppUser } from "./types/types";
+export type { TokenResponse, AppUser,Query } from "./types/types";
 export type { CocobaseConfig, Document, Collection };

@@ -3,8 +3,11 @@ import {
   Document,
   TokenResponse,
   AppUser,
+  Query,
 } from "../types/types";
 import {
+  BASEURL,
+  buildFilterQuery,
   getFromLocalStorage,
   mergeUserData,
   setToLocalStorage,
@@ -17,7 +20,7 @@ export class Cocobase {
   user?: AppUser;
 
   constructor(config: CocobaseConfig) {
-    this.baseURL = "https://futurebase.fly.dev";
+    this.baseURL = BASEURL;
     this.apiKey = config.apiKey;
   }
 
@@ -138,12 +141,18 @@ export class Cocobase {
   }
 
   // List documents
-  async listDocuments<T = any>(collection: string): Promise<Document<T>[]> {
+  async listDocuments<T = any>(
+    collection: string,
+    query?: Query
+  ): Promise<Document<T>[]> {
+    const query_str = buildFilterQuery(query);
+
     return this.request<Document<T>[]>(
       "GET",
-      `/collections/${collection}/documents`
+      `/collections/${collection}/documents${query_str ? `?${query_str}` : ""}`
     );
   }
+
   // authentication features
   async initAuth() {
     const token = getFromLocalStorage("cocobase-token");
@@ -234,5 +243,33 @@ export class Cocobase {
     this.user = user as AppUser;
     setToLocalStorage("cocobase-user", JSON.stringify(user));
     return user as AppUser;
+  }
+
+  watchCollection(
+    collection: string,
+    callback: (event: { type: string; document: Document<any> }) => void,
+    connectionName?: string
+  ): void {
+    const socket = new WebSocket(
+      `${this.baseURL.replace("http", "ws")}/realtime/collection/${collection}`
+    );
+    socket.onopen = () => {
+      console.log(
+        `WebSocket connection established for collection: ${collection}`
+      );
+      socket.send(JSON.stringify({ api_key: this.apiKey }));
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type && data.document) {
+        callback({
+          type: data.type,
+          document: data.document as Document<any>,
+        });
+      } else {
+        console.warn("Received unexpected message format:", data);
+      }
+    };
   }
 }
