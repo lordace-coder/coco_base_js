@@ -4,6 +4,7 @@ import {
   TokenResponse,
   AppUser,
   Query,
+  Connection,
 } from "../types/types";
 import {
   BASEURL,
@@ -13,6 +14,7 @@ import {
   setToLocalStorage,
 } from "../utils/utils";
 
+import { closeConnection as closeCon } from "../utils/socket";
 export class Cocobase {
   private baseURL: string;
   private apiKey?: string;
@@ -247,12 +249,15 @@ export class Cocobase {
 
   watchCollection(
     collection: string,
-    callback: (event: { type: string; document: Document<any> }) => void,
-    connectionName?: string
-  ): void {
+    callback: (event: { event: string; data: Document<any> }) => void,
+    connectionName?: string,
+    onOpen: () => void = () => {},
+    onError: () => void = () => {}
+  ): Connection {
     const socket = new WebSocket(
-      `${this.baseURL.replace("http", "ws")}/realtime/collection/${collection}`
+      `${this.baseURL.replace("http", "ws")}/realtime/collections/${collection}`
     );
+    socket.onerror = onError;
     socket.onopen = () => {
       console.log(
         `WebSocket connection established for collection: ${collection}`
@@ -262,14 +267,26 @@ export class Cocobase {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type && data.document) {
-        callback({
-          type: data.type,
-          document: data.document as Document<any>,
-        });
-      } else {
-        console.warn("Received unexpected message format:", data);
-      }
+      callback({
+        event: data.event,
+        data: data.data as Document<any>,
+      });
     };
+    socket.onopen = () => {
+      onOpen();
+    };
+    return {
+      socket,
+      name: connectionName || `watch-${collection}`,
+      closed: false,
+      close: () => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.close();
+        }
+      },
+    };
+  }
+  closeConnection(name: string) {
+    closeCon(name);
   }
 }

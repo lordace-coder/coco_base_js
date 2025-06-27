@@ -31,3 +31,10 @@ export interface AppUser {
   data: Record<string, any>;
   client_id: string;
 }
+
+export interface Connection {
+  socket: WebSocket;
+  name: string;
+  closed: boolean;
+  close: () => void;
+}
