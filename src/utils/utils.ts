@@ -59,7 +59,7 @@ function buildFilterQuery({
   return params.toString();
 }
 
-const BASEURL = "https://futurebase.fly.dev";
+const BASEURL = "https://futurebase.vercel.app";
 export {
   getFromLocalStorage,
   setToLocalStorage,
