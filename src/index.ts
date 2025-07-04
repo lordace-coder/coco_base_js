@@ -5,7 +5,14 @@ import {
   mergeUserData,
   setToLocalStorage,
 } from "./utils/utils";
+import { uploadFile } from "./core/file";
 
-export { Cocobase, getFromLocalStorage, mergeUserData, setToLocalStorage };
-export type { TokenResponse, AppUser,Query } from "./types/types";
+export {
+  Cocobase,
+  getFromLocalStorage,
+  mergeUserData,
+  setToLocalStorage,
+  uploadFile,
+};
+export type { TokenResponse, AppUser, Query } from "./types/types";
 export type { CocobaseConfig, Document, Collection };

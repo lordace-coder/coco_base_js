@@ -17,7 +17,7 @@ import {
 import { closeConnection as closeCon } from "../utils/socket";
 export class Cocobase {
   private baseURL: string;
-  private apiKey?: string;
+   apiKey?: string;
   private token?: string;
   user?: AppUser;
 
